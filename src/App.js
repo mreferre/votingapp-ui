@@ -1,64 +1,35 @@
-import React, {Component} from 'react';
-import Votes from './components/votes';
+import React, { useState, useCallback } from 'react';
+import Login from './components/Login';
+import Dashboard from './components/Dashboard';
+import './App.css';
 
-const VOTINGAPP_ENDPOINT = process.env.REACT_APP_VOTINGAPP_ENDPOINT
-if (!VOTINGAPP_ENDPOINT) {
-    console.error('REACT_APP_VOTINGAPP_ENDPOINT environment variable is not set. Please set this variable in your .env file.');
-    process.exit(1);
-}
-class App extends Component {
+const VOTINGAPP_ENDPOINT = process.env.REACT_APP_VOTINGAPP_ENDPOINT || '';
 
-    vote(restaurant) {
-        fetch(VOTINGAPP_ENDPOINT + '/api/' + restaurant)
-            .then(res => res.json())
-            .then((data) => {
-                console.log(data);
-            });
-        fetch(VOTINGAPP_ENDPOINT + '/api/getvotes')
-            .then(res => res.json())
-            .then((data) => {
-                this.setState({ votes: data });
-            })
-        console.log('I voted ' + restaurant);
-    }
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
 
-    render() {
-        return (
-            <>
-            <Votes votes={this.state.votes} />
-            <div>
-                <button className="btn btn-primary" type='button' onClick={() => this.vote('chipotle')}>
-                Chipotle
-                </button>
-                <button className="btn btn-primary" type='button' onClick={() => this.vote('outback')}>
-                Outback
-                </button>
-                <button className="btn btn-primary" type='button' onClick={() => this.vote('ihop')}>
-                IHOP
-                </button>
-                <button className="btn btn-primary" type='button' onClick={() => this.vote('bucadibeppo')}>
-                Buca di Beppo
-                </button>
-            </div>
-            </>
-        )
-    }
+  const handleLogin = useCallback((username) => {
+    setUser(username);
+    setIsAuthenticated(true);
+  }, []);
 
-    state = {
-        votes: []
-    };
+  const handleLogout = useCallback(() => {
+    setUser(null);
+    setIsAuthenticated(false);
+  }, []);
 
-    componentDidMount() {
-        fetch(VOTINGAPP_ENDPOINT + '/api/getvotes')
-            .then(res => res.json())
-            .then((data) => {
-                this.setState({ votes: data });
-                console.log(data);
-            })
-            .catch(console.log)
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
-    }
-
+  return (
+    <Dashboard
+      apiEndpoint={VOTINGAPP_ENDPOINT}
+      user={user}
+      onLogout={handleLogout}
+    />
+  );
 }
 
 export default App;
