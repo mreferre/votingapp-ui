@@ -1,18 +1,6 @@
 const { test, expect } = require('@playwright/test');
-const { start, stop } = require('./mock-api-server');
 
-test.beforeAll(async () => {
-  await start(4000);
-});
-
-test.afterAll(async () => {
-  await stop();
-});
-
-test.beforeEach(async () => {
-  // Reset mock API state for test isolation
-  await fetch('http://localhost:4000/api/reset');
-});
+const REAL_API = 'https://jftwauzwqh.us-east-1.awsapprunner.com';
 
 test('displays login page on initial load', async ({ page }) => {
   await page.goto('/');
@@ -59,15 +47,20 @@ test('cast a vote and see updated count', async ({ page }) => {
   await page.locator('[data-testid="password-input"] input').fill('admin123');
   await page.locator('[data-testid="login-button"]').click();
   await page.waitForSelector('[data-testid="dashboard"]');
-  // Read initial vote count for Chipotle
+  // Read initial vote count for Chipotle from the real backend
   const initialCount = await page.locator('[data-testid="vote-count-chipotle"]').textContent();
   const initialNum = parseInt(initialCount, 10);
   // Click the vote button for Chipotle
   await page.locator('[data-testid="vote-button-chipotle"]').click();
-  // Wait for the count to update
-  await expect(page.locator('[data-testid="vote-count-chipotle"]')).toHaveText(
-    String(initialNum + 1)
+  // Wait for the count to update (should be at least initialNum + 1)
+  await expect(page.locator('[data-testid="vote-count-chipotle"]')).not.toHaveText(
+    String(initialNum),
+    { timeout: 10000 }
   );
+  // Verify the count actually increased
+  const updatedCount = await page.locator('[data-testid="vote-count-chipotle"]').textContent();
+  const updatedNum = parseInt(updatedCount, 10);
+  expect(updatedNum).toBeGreaterThan(initialNum);
   await page.screenshot({ path: 'e2e/screenshots/after-vote.png' });
 });
 

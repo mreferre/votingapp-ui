@@ -15,7 +15,7 @@ module.exports = defineConfig({
     },
   ],
   webServer: {
-    command: 'REACT_APP_VOTINGAPP_ENDPOINT=http://localhost:4000 npx react-scripts start',
+    command: 'REACT_APP_VOTINGAPP_ENDPOINT=https://jftwauzwqh.us-east-1.awsapprunner.com npx react-scripts start',
     port: 3000,
     reuseExistingServer: true,
   },
