@@ -1,64 +1,53 @@
-import React, {Component} from 'react';
-import Votes from './components/votes';
+import React, { useState } from 'react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import Login from './components/Login';
+import VotingDashboard from './components/VotingDashboard';
+import './App.css';
 
-const VOTINGAPP_ENDPOINT = process.env.REACT_APP_VOTINGAPP_ENDPOINT
+const VOTINGAPP_ENDPOINT = process.env.REACT_APP_VOTINGAPP_ENDPOINT;
 if (!VOTINGAPP_ENDPOINT) {
-    console.error('REACT_APP_VOTINGAPP_ENDPOINT environment variable is not set. Please set this variable in your .env file.');
-    process.exit(1);
+  console.warn(
+    'REACT_APP_VOTINGAPP_ENDPOINT environment variable is not set. Please set this variable in your .env file.'
+  );
 }
-class App extends Component {
 
-    vote(restaurant) {
-        fetch(VOTINGAPP_ENDPOINT + '/api/' + restaurant)
-            .then(res => res.json())
-            .then((data) => {
-                console.log(data);
-            });
-        fetch(VOTINGAPP_ENDPOINT + '/api/getvotes')
-            .then(res => res.json())
-            .then((data) => {
-                this.setState({ votes: data });
-            })
-        console.log('I voted ' + restaurant);
-    }
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#667eea',
+    },
+    secondary: {
+      main: '#764ba2',
+    },
+  },
+  typography: {
+    fontFamily: 'Roboto, Arial, sans-serif',
+  },
+  shape: {
+    borderRadius: 8,
+  },
+});
 
-    render() {
-        return (
-            <>
-            <Votes votes={this.state.votes} />
-            <div>
-                <button className="btn btn-primary" type='button' onClick={() => this.vote('chipotle')}>
-                Chipotle
-                </button>
-                <button className="btn btn-primary" type='button' onClick={() => this.vote('outback')}>
-                Outback
-                </button>
-                <button className="btn btn-primary" type='button' onClick={() => this.vote('ihop')}>
-                IHOP
-                </button>
-                <button className="btn btn-primary" type='button' onClick={() => this.vote('bucadibeppo')}>
-                Buca di Beppo
-                </button>
-            </div>
-            </>
-        )
-    }
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    state = {
-        votes: []
-    };
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
 
-    componentDidMount() {
-        fetch(VOTINGAPP_ENDPOINT + '/api/getvotes')
-            .then(res => res.json())
-            .then((data) => {
-                this.setState({ votes: data });
-                console.log(data);
-            })
-            .catch(console.log)
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+  };
 
-    }
-
+  return (
+    <ThemeProvider theme={theme}>
+      {isAuthenticated ? (
+        <VotingDashboard onLogout={handleLogout} />
+      ) : (
+        <Login onLogin={handleLogin} />
+      )}
+    </ThemeProvider>
+  );
 }
 
 export default App;
